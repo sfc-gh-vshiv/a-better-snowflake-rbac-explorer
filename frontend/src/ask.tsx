@@ -179,6 +179,14 @@ function AnswerTurn({ t, last, onAsk, q }: { t: Turn; last: boolean; onAsk: (q: 
 /** Keeps polling answers while the panel is minimised. */
 function Poller({ t }: { t: Turn }) { useBot(t); return null; }
 
+// Diagonal arrows: out = expand, in = shrink.
+const ExpandIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 2h4v4M14 2 9 7M6 14H2v-4M2 14l5-5" /></svg>);
+const ShrinkIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2 9 7M9 3v4h4M2 14l5-5M7 13V9H3" /></svg>);
+
 export function AskPanel({ m }: { m: RBAC }) {
   useStore(); // re-render on store changes
   const [q, setQ] = useState("");
@@ -218,8 +226,9 @@ export function AskPanel({ m }: { m: RBAC }) {
         <b>Ask about roles &amp; access</b>
         <span className="row" style={{ gap: 6 }}>
           {turns.length > 0 && <button className="btn sm" onClick={() => { T.turns = []; setStore({}); }}>Clear</button>}
-          <button className="btn sm" title={T.big ? "Shrink the chat" : "Expand the chat"}
-            onClick={() => { T.big = !T.big; setStore({}); }}>{T.big ? "Shrink" : "Expand"}</button>
+          <button className="btn sm icon" title={T.big ? "Shrink the chat" : "Expand the chat"}
+            aria-label={T.big ? "Shrink the chat" : "Expand the chat"}
+            onClick={() => { T.big = !T.big; setStore({}); }}>{T.big ? <ShrinkIcon /> : <ExpandIcon />}</button>
           <button className="btn sm" onClick={() => { T.open = false; setStore({}); }}>—</button>
         </span>
       </div>
@@ -250,9 +259,10 @@ export const ASK_CSS = `
 .sl .askfab{position:fixed;right:22px;bottom:22px;z-index:50;background:linear-gradient(135deg,#29B5E8,#0b76a8);color:#fff;border:0;border-radius:24px;padding:11px 20px;
  font:inherit;font-weight:700;box-shadow:0 6px 20px rgba(15,23,42,.25);cursor:pointer}
 .sl .askfab:hover{background:#075985}
-.sl .askpanel{position:fixed;right:18px;bottom:18px;z-index:50;width:min(460px,calc(100vw - 36px));height:min(620px,calc(100vh - 36px));font-size:12.5px;
+.sl .askpanel{position:fixed;right:18px;bottom:18px;z-index:50;width:min(460px,calc(100vw - 36px));height:min(560px,calc(100vh - 130px));font-size:12.5px;
  background:#fff;border:1px solid var(--border2);border-radius:14px;box-shadow:0 12px 36px rgba(15,23,42,.22);display:flex;flex-direction:column}
-.sl .askpanel.big{width:min(900px,calc(100vw - 36px));height:calc(100vh - 36px)}
+.sl .askpanel.big{width:min(760px,calc(100vw - 36px));height:min(760px,calc(100vh - 130px))}
+.sl .askhead .icon{padding:3px 6px;line-height:0}
 .sl .askhead{padding:10px 12px;border-bottom:1px solid var(--border)}
 .sl .askbody{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
 .sl .askin{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);align-items:flex-end}

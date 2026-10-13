@@ -8,8 +8,11 @@ const ok = (n, c) => console.log((c ? "PASS " : "FAIL ") + n);
 await fr.click(".askfab");
 const w0 = await fr.$eval(".askpanel", (e) => e.offsetWidth);
 await fr.click("button[title='Expand the chat']");
-const [w1, h1] = await fr.$eval(".askpanel", (e) => [e.offsetWidth, e.offsetHeight]);
-ok(`expands ${w0} -> ${w1}x${h1}`, w1 > w0 + 200 && h1 > 800);
+const [w1, h1, top] = await fr.$eval(".askpanel", (e) => [e.offsetWidth, e.offsetHeight, e.getBoundingClientRect().top]);
+ok(`expands ${w0} -> ${w1}x${h1}`, w1 > w0 + 200 && h1 > 600);
+// Snowsight's app bar (Deploy, Share...) sits over the top of the app: keep the panel header clear of it.
+ok(`top edge clear of the app bar (top=${Math.round(top)}px)`, top >= 100);
+ok("icon buttons, no Expand/Shrink words", !/Expand|Shrink/.test(await fr.$eval(".askhead", (e) => e.innerText)));
 await p.screenshot({ path: "/tmp/rx_askbig.png" });
 await fr.$eval("button[title='Shrink the chat']", (b) => b.click());
 ok("shrinks", (await fr.$eval(".askpanel", (e) => e.offsetWidth)) === w0);
