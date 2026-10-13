@@ -1,0 +1,3 @@
+{ "compilerOptions": { "target": "ES2020", "module": "ESNext", "moduleResolution": "Bundler", "jsx": "react",
+  "strict": true, "noUnusedLocals": true, "skipLibCheck": true, "esModuleInterop": true, "noEmit": true, "lib": ["ES2021", "DOM"] },
+  "include": ["src"] }

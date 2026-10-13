@@ -1,0 +1,22 @@
+{
+  "name": "role-explorer-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.tsx --bundle --minify --format=iife --global-name=SLBundle --define:process.env.NODE_ENV='\"production\"' --charset=ascii --outfile=../ui/sl_ui.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "echarts": "^5.5.1",
+    "elkjs": "^0.9.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "esbuild": "^0.24.0",
+    "playwright-core": "*",
+    "typescript": "^5.9.3"
+  }
+}

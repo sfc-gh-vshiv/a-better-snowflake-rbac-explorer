@@ -1,0 +1,18 @@
+[project]
+name = "role-explorer-react"
+version = "0.1.0"
+description = "Role Explorer: Snowflake RBAC graph (React in SiS)"
+requires-python = "==3.11.*"
+# Pinned to the versions PRE-INSTALLED in SYSTEM$ST_CONTAINER_RUNTIME_PY3_11, so uv's sync
+# changes nothing. Pinning anything else makes uv swap packages underneath the already
+# running Streamlit server, which mixes two versions in one process (seen as pyarrow's
+# "string_to_tzinfo() got an unexpected keyword argument 'prefer_zoneinfo'" and a broken
+# file watcher). When the runtime image moves, update these to the new base versions
+# (the "uv install output" log in the event table lists them).
+dependencies = [
+    "streamlit==1.64.0",
+    "snowflake-snowpark-python==1.54.0",
+    "snowflake-connector-python[pandas]==4.7.2",
+    "pandas==2.3.3",
+    "pyarrow==24.0.0",
+]
