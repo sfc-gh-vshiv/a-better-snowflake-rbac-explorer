@@ -15,7 +15,7 @@
   "devDependencies": {
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.28.1",
     "playwright-core": "*",
     "typescript": "^5.9.3"
   }
