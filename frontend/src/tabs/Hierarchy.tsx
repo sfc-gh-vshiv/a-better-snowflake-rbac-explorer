@@ -9,7 +9,43 @@ import { RolePanel } from "./Role";
 type Any = any;
 const W = window as Any;
 const elk = new ELK();
-const NW = 188, NH = 46, UW = 150, UH = 26;
+const NW = 188, NH = 46, NH2 = 61, UW = 150, UH = 26;
+const PAD = 14;
+
+// Role names are wrapped to the fixed box width, measured in the rendered font, so long names never spill out
+// and never widen the box. Breaks prefer "_", "." or "-"; two lines at most, then an ellipsis.
+let measureCtx: CanvasRenderingContext2D | null = null;
+function textW(t: string): number {
+  if (!measureCtx) {
+    measureCtx = document.createElement("canvas").getContext("2d");
+    if (measureCtx) measureCtx.font = "700 12.5px 'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif";
+  }
+  return measureCtx ? measureCtx.measureText(t).width : t.length * 7.6;
+}
+function ellipsize(t: string, w: number): string {
+  if (textW(t) <= w) return t;
+  let n = t.length;
+  while (n > 1 && textW(t.slice(0, n - 1) + "…") > w) n--;
+  return t.slice(0, n - 1) + "…";
+}
+const LINES: Record<string, string[]> = {};
+function nameLines(name: string): string[] {
+  if (LINES[name]) return LINES[name];
+  const w1 = NW - 2 * PAD, w2 = w1;
+  let out: string[];
+  if (textW(name) <= w1) out = [name];
+  else {
+    // Prefer the longest first line ending at a separator whose remainder fits on line two; otherwise fill
+    // line one and break mid-word, which shows more of the name than an early break plus an ellipsis.
+    let cut = -1;
+    for (let i = name.length - 1; i > 0; i--) {
+      if ("_.- ".includes(name[i - 1]) && textW(name.slice(0, i)) <= w1 && textW(name.slice(i)) <= w2) { cut = i; break; }
+    }
+    if (cut < 0) { cut = name.length; while (cut > 1 && textW(name.slice(0, cut)) > w1) cut--; }
+    out = [name.slice(0, cut), ellipsize(name.slice(cut), w2)];
+  }
+  return (LINES[name] = out);
+}
 
 type Lay = { nodes: { id: string; x: number; y: number; w: number; h: number; r?: number; u?: number; gi?: number }[];
   edges: { id: string; s: string; t: string; pts: [number, number][] }[]; w: number; h: number };
@@ -82,7 +118,7 @@ function nodeSig(ns: number[]) { let h = 0; for (const r of ns) h = (h * 31 + r 
 
 async function layout(m: RBAC, g: ReturnType<typeof subgraph>): Promise<Lay> {
   const children = [
-    ...g.nodes.map((r) => ({ id: "r" + r, width: NW, height: NH })),
+    ...g.nodes.map((r) => ({ id: "r" + r, width: NW, height: nameLines(m.ids[r]).length > 1 ? NH2 : NH })),
     ...g.users.map((u) => ({ id: "u" + u, width: UW, height: UH })),
     ...g.groups.map((gr, i) => ({ id: "g" + i, width: NW, height: NH + 12 })),
   ];
@@ -332,11 +368,12 @@ export function Hierarchy({ m }: { m: RBAC }) {
                       <title>{`${m.ids[r]}\n${k.label} role · ${nu} direct users · ${ng} privileges${m.raw.nodes[r][3] ? "\n" + m.raw.nodes[r][3] : ""}`}</title>
                       {isSel && <rect x={-4} y={-4} width={n.w + 8} height={n.h + 8} rx={12} style={{ fill: "none", stroke: "#29B5E8", strokeWidth: 3, opacity: 0.55 }} />}
                       <rect width={n.w} height={n.h} rx={9} style={{ fill: k.fill, stroke: isProt ? "#dc2626" : k.stroke, strokeWidth: isSel ? 2.4 : 1.4 }} />
-                      <text x={14} y={19} style={{ fontSize: 12.5, fontWeight: 700, fill: k.ink }}>{trunc(m.ids[r], isProt ? 20 : 23)}</text>
-                      <text x={14} y={35} style={{ fontSize: 11, fill: "#64748b" }}>
+                      <text x={PAD} y={19} style={{ fontSize: 12.5, fontWeight: 700, fill: k.ink }}>
+                        {nameLines(m.ids[r]).map((ln, i) => <tspan key={i} x={PAD} dy={i ? 15 : 0}>{ln}</tspan>)}</text>
+                      <text x={PAD} y={n.h - 11} style={{ fontSize: 11, fill: "#64748b" }}>
                         {`${nu} user${nu === 1 ? "" : "s"} · ${fmt(ng)} priv${ng === 1 ? "" : "s"}`}</text>
                       {isProt && (
-                        <g transform={`translate(${n.w - 22},7)`}><title>Protected by an alert rule</title>
+                        <g transform={`translate(${n.w - 22},${n.h - 21}) scale(0.82)`}><title>Protected by an alert rule</title>
                           <path d="M8 0 L16 3 V9 C16 14 12 17 8 19 C4 17 0 14 0 9 V3 Z" style={{ fill: "#dc2626" }} />
                           <path d="M4.5 9.5 L7 12 L11.5 6.5" style={{ fill: "none", stroke: "#fff", strokeWidth: 1.8 }} /></g>
                       )}
