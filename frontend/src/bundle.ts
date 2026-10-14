@@ -23,7 +23,7 @@ export type Live = {
   pats: { name?: string; role?: string | null; expires?: string; status?: string; error?: string }[];
 };
 /** A set of roles something runs with, and the warehouse it would use. */
-export type Principal = { label: string; roles: Set<string>; defaultWh?: string | null; why?: string };
+export type Principal = { label: string; roles: Set<string>; defaultWh?: string | null; why?: string; user?: string };
 export type Row = { item: Item; ok: boolean; via?: string; reason?: string };
 export type Status = "ready" | "partial" | "blocked";
 
@@ -46,10 +46,10 @@ function modelReach(m: RBAC, names: string[]): Set<string> {
 /** From the loaded model. mode: all = every role the user holds; default = default role only (how agents run). */
 export function fromModel(m: RBAC, u: number, mode: "all" | "default"): Principal {
   const x = m.raw.users[u];
-  if (mode === "all") return { label: `${x.name}, all roles`, roles: new Set([...m.userReach(u)].map((r) => m.ids[r])), defaultWh: x.default_warehouse };
+  if (mode === "all") return { label: `${x.name}, all roles`, roles: new Set([...m.userReach(u)].map((r) => m.ids[r])), defaultWh: x.default_warehouse, user: x.name };
   const held = m.userRoles[u].map((r) => m.ids[r]);
   const dr = x.default_role && held.includes(x.default_role) ? [x.default_role] : [];
-  return { label: `${x.name}, default role ${x.default_role || "(none)"}`, roles: modelReach(m, [...dr, "PUBLIC"]), defaultWh: x.default_warehouse,
+  return { label: `${x.name}, default role ${x.default_role || "(none)"}`, roles: modelReach(m, [...dr, "PUBLIC"]), defaultWh: x.default_warehouse, user: x.name,
     why: x.default_role && !dr.length ? `default role ${x.default_role} isn't granted to the user` : undefined };
 }
 export function fromRole(m: RBAC, role: string): Principal {
@@ -60,11 +60,11 @@ export function fromLive(lv: Live, mode: "all" | "default" | "role", role?: stri
   const kids = new Map<string, string[]>();
   for (const [c, p] of lv.edges) kids.set(p, [...(kids.get(p) || []), c]);
   const k = (r: string) => kids.get(r) || [];
-  if (mode === "all") return { label: `${lv.user}, all roles (live)`, roles: closure([...lv.roots, "PUBLIC"], k), defaultWh: lv.default_warehouse };
+  if (mode === "all") return { label: `${lv.user}, all roles (live)`, roles: closure([...lv.roots, "PUBLIC"], k), defaultWh: lv.default_warehouse, user: lv.user };
   const r = mode === "default" ? lv.default_role : role;
   const held = !!r && lv.roots.includes(r);
   return { label: mode === "default" ? `${lv.user}, default role ${r || "(none)"} (live)` : `${lv.user} as ${r} (live)`,
-    roles: closure([...(held ? [r!] : []), "PUBLIC"], k), defaultWh: lv.default_warehouse,
+    roles: closure([...(held ? [r!] : []), "PUBLIC"], k), defaultWh: lv.default_warehouse, user: lv.user,
     why: r && !held ? `${r} isn't granted to ${lv.user}` : !r ? "no role set" : undefined };
 }
 
@@ -105,7 +105,8 @@ export function gap(m: RBAC, b: Bundle, p: Principal) {
     const wh: Item = { key: "DEFAULT_WAREHOUSE", otype: "WAREHOUSE", fqn: p.defaultWh || "(none)", priv: "USAGE", via: b.fqn, source: ["spec"],
       note: "agents run on the caller's default warehouse" };
     rows.push(p.defaultWh ? { ...check(m, { ...wh, live: b.items.find((x) => x.otype === "WAREHOUSE" && x.fqn === p.defaultWh)?.live }, p), item: wh }
-      : { item: wh, ok: false, reason: "no default warehouse set; agent calls fail without one" });
+      : { item: wh, ok: false, reason: "no default warehouse set; agent calls fail without one" +
+          (p.user ? `. Fix: ALTER USER ${p.user} SET DEFAULT_WAREHOUSE = ${b.items.find((x) => x.otype === "WAREHOUSE")?.fqn || "<warehouse>"}` : "") });
   }
   const root = rows.find((r) => r.item.root);
   const missing = rows.filter((r) => !r.ok);

@@ -369,8 +369,9 @@ def expand(tree: dict) -> list[dict]:
         cur["root"] = cur.get("root") or i.get("root")
         cur["suggested"] = bool(cur.get("suggested")) and bool(i.get("suggested"))
 
+    top = {id(i) for i in tree["items"]}
     for i in _all_items(tree):
-        add(i)
+        add(dict(i, root=bool(i.get("root")) and id(i) in top))  # only the asset itself is root, not its tools
         parts = i["fqn"].split(".")
         if i["otype"] not in ("DATABASE ROLE", "WAREHOUSE", "DATABASE", "SCHEMA") and len(parts) == 3:
             add(dict(item("DATABASE", parts[0], i["fqn"], i["source"][0]), suggested=i.get("suggested", False)))
@@ -433,7 +434,8 @@ def bundle_hash(items: list[dict]) -> str:
 
 
 # ------------------------------------------------------------------ least-privilege access role
-_PROTECTED = {"ACCOUNTADMIN", "SECURITYADMIN", "USERADMIN", "ORGADMIN", "GLOBALORGADMIN", "SYSADMIN", "PUBLIC"}
+_PROTECTED = {"ACCOUNTADMIN", "SECURITYADMIN", "USERADMIN", "ORGADMIN", "GLOBALORGADMIN", "SYSADMIN", "PUBLIC",
+              "RBAC_EXPLORER_ROLE"}
 
 
 def ar_name(kind: str, fqn: str) -> str:

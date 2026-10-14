@@ -18,6 +18,7 @@ type Sel = { kind: string; fqn?: string; text?: string; learn?: { user: string; 
 
 /** Start a request once per key; null key = idle. Payload is read when the key changes. */
 function useRun<T = Any>(action: string) {
+  useStore();   // re-render when the response (or a poll result) arrives
   const [k, setK] = useState<{ key: string; pl: Any } | null>(null);
   const j = k ? job<T>(k.key, () => send(action, k.pl)) : null;
   return { j, run: (pl: Any) => setK({ key: `${action}:${Date.now()}`, pl }), clear: () => setK(null) };
@@ -219,8 +220,8 @@ function CanUse({ m, b }: { m: RBAC; b: Bundle }) {
       <div className="between"><h3>Can they use it?</h3>
         <div className="tabsm" style={{ margin: 0 }}>{[["person", "A person or AI tool"], ["team", "A whole team (role)"]].map(([v, l]) =>
           <button key={v} className={mode === v ? "on" : ""} onClick={() => setMode(v as Any)}>{l}</button>)}</div></div>
-      {mode === "person" && <div className="split" style={{ gridTemplateColumns: "260px minmax(0,1fr)" }}>
-        <div><Picker items={users} value={user} onPick={(u) => { setUser(u); setStore({ canUser: u }); }} placeholder="Search users…" max={80} /></div>
+      {mode === "person" && <div>
+        <div style={{ maxWidth: 420, marginBottom: 8 }}><Picker items={users} value={user} onPick={(u) => { setUser(u); setStore({ canUser: u }); }} placeholder="Search users…" max={user ? 6 : 40} /></div>
         <div>{user ? <PersonGap m={m} b={b} user={user} how={how} setHow={setHow} /> : <div className="empty">Pick a user to check the asset the way it will run for them.</div>}</div>
       </div>}
       {mode === "team" && <div>

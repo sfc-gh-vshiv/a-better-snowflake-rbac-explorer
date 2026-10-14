@@ -136,8 +136,10 @@ def get(session, bid: str) -> dict:
     if not rows:
         raise ValueError("bundle not found")
     r = rows[0]
+    tree = _json(r["tree"], {})
     return {"id": r["id"], "kind": r["kind"], "fqn": r["fqn"], "source": _json(r["source"], {}),
-            "items": _json(r["items"], []), "tree": _json(r["tree"], {}), "hash": r["hash"], "ar": r["ar_role"],
+            "items": _json(r["items"], []), "tree": tree, "hash": r["hash"], "ar": r["ar_role"],
+            "needs_default_wh": bool(tree) and any(n.get("needs_default_wh") for n in ak._walk(tree)),
             "created_by": r["created_by"], "updated": r["updated_at"]}
 
 

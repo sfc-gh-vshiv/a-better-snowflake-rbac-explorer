@@ -215,7 +215,8 @@ def _drift_state(session, spec) -> dict:
     src = b["source"]
     tree = ak.discover(session, b["kind"], b["fqn"], src.get("text") or "")
     return {i["key"]: {"asset": b["fqn"], "otype": i["otype"], "fqn": i["fqn"], "priv": i["priv"], "via": i["via"],
-                       "ar": b["ar"] or ak.ar_name(b["kind"], b["fqn"]), "sig": i.get("sig")}
+                       "ar": b["ar"] or ak.ar_name(b["kind"], b["fqn"]), "sig": i.get("sig"),
+                       "grantee": b["fqn"], "gtype": "AI asset"}
             for i in ak.expand(tree) if not i.get("suggested")}
 
 
@@ -235,7 +236,7 @@ def _broken_state(session, spec) -> dict:
             continue
         if (i["priv"], i["fqn"]) not in have:
             out[i["key"]] = {"asset": b["fqn"], "otype": i["otype"], "fqn": i["fqn"], "priv": i["priv"], "ar": ar,
-                             "sig": i.get("sig")}
+                             "sig": i.get("sig"), "grantee": ar, "gtype": "access role"}
     return out
 
 
@@ -246,9 +247,9 @@ def state(session, kind: str, spec: dict) -> dict:
 
 def reason(kind: str, spec: dict, v: dict) -> str:
     if kind == "bundle_drift":
-        return f"{v['asset']} now needs {v['priv']} on {v['otype'].lower()} {v['fqn']} (via {v['via']}); users of {v['ar']} will lose part of it"
+        return f"now needs {v['priv']} on {v['otype'].lower()} {v['fqn']} (via {v['via']}), which {v['ar']} doesn't grant yet"
     if kind == "bundle_broken":
-        return f"{v['ar']} no longer holds {v['priv']} on {v['otype'].lower()} {v['fqn']}, so {v['asset']} is partly broken for its users"
+        return f"no longer holds {v['priv']} on {v['otype'].lower()} {v['fqn']}, so {v['asset']} is partly broken for its users"
     if kind == "admin_holders":
         return f"can now use {v['role']} ({v['path']})"
     if kind == "sensitive_privilege":
