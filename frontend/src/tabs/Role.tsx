@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { job, resetJob, send, setStore, store, useStore } from "../kit";
 import { RBAC, rankOf } from "../graph";
 import { KIND_META } from "../theme";
-import { ErrorBox, Metric, Path, Picker, RoleChip, UserChip, ago, fmt } from "../ui";
+import { ErrorBox, Metric, Path, Picker, RoleChip, Split, UserChip, ago, fmt } from "../ui";
 
 type Any = any;
 
@@ -12,10 +12,10 @@ export function RoleTab({ m }: { m: RBAC }) {
   const items = useMemo(() => m.ids.map((id, i) => ({ label: id, value: i, hint: (KIND_META[m.kind[i]] || KIND_META.empty).label }))
     .sort((a, b) => a.label.localeCompare(b.label)), [m]);
   return (
-    <div className="split" style={{ gridTemplateColumns: "300px minmax(0,1fr)" }}>
+    <Split id="role" init={300}>
       <div className="card"><h3>Roles</h3><Picker items={items} value={sel} onPick={(r) => setStore({ sel: m.ids[r] })} placeholder="Find a role" max={400} /></div>
       <div className="card">{sel === null ? <div className="empty">Pick a role to see its full profile.</div> : <RolePanel m={m} r={sel} />}</div>
-    </div>
+    </Split>
   );
 }
 

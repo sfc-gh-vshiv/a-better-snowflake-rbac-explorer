@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { setStore, useStore } from "../kit";
 import { RBAC, rankOf } from "../graph";
-import { Metric, Path, Picker, RoleChip, ago, fmt } from "../ui";
+import { Metric, Path, Picker, RoleChip, Split, ago, fmt } from "../ui";
 
 export function UserTab({ m }: { m: RBAC }) {
   const s = useStore();
@@ -9,10 +9,10 @@ export function UserTab({ m }: { m: RBAC }) {
   const items = useMemo(() => m.raw.users.map((x, i) => ({ label: x.name, value: i,
     hint: `${x.type || "PERSON"}${x.disabled ? " · disabled" : ""}` })).sort((a, b) => a.label.localeCompare(b.label)), [m]);
   return (
-    <div className="split" style={{ gridTemplateColumns: "300px minmax(0,1fr)" }}>
+    <Split id="user" init={300}>
       <div className="card"><h3>Users</h3><Picker items={items} value={u} onPick={(i) => setStore({ user: m.raw.users[i].name })} placeholder="Find a user" /></div>
       <div className="card">{u < 0 ? <div className="empty">Pick a user to see every role they can use and everything they can touch.</div> : <UserPanel m={m} u={u} />}</div>
-    </div>
+    </Split>
   );
 }
 
@@ -96,7 +96,7 @@ export function AccessTab({ m }: { m: RBAC }) {
     return Object.entries(c).sort((a, b) => b[1] - a[1]);
   }, [m]);
   return (
-    <div className="split" style={{ gridTemplateColumns: "340px minmax(0,1fr)" }}>
+    <Split id="user-who" init={340}>
       <div className="card">
         <h3>Who can access…</h3>
         <select className="txt" style={{ width: "100%", marginBottom: 6 }} value={type} onChange={(e) => setType(e.target.value)}>
@@ -106,7 +106,7 @@ export function AccessTab({ m }: { m: RBAC }) {
         <Picker items={items} value={s.obj} onPick={(o) => setStore({ obj: o })} placeholder="Search tables, schemas, warehouses…" />
       </div>
       <div className="card">{s.obj === null || !m.raw.objs[s.obj] ? <div className="empty">Pick an object to see every role and user that can reach it, and how.</div> : <AccessPanel m={m} o={s.obj} />}</div>
-    </div>
+    </Split>
   );
 }
 

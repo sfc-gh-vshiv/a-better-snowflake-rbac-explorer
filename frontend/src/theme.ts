@@ -81,7 +81,12 @@ export const CSS = `
 .sl .split{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:12px}
 .sl .split.solo{grid-template-columns:minmax(0,1fr)}
 .sl .graphbox.full{position:fixed;inset:0;z-index:1000;height:auto;border-radius:0;border:0}
-@media (max-width:1100px){.sl .split{grid-template-columns:1fr}.sl .hide-md{display:none}}
+.sl .split.rs{gap:0}
+.sl .split.rs>.gutter{cursor:col-resize;position:relative;align-self:stretch;min-height:40px}
+.sl .split.rs>.gutter::after{content:"";position:absolute;top:0;bottom:0;left:6px;width:2px;border-radius:2px;background:transparent;transition:background .15s}
+.sl .split.rs>.gutter:hover::after,.sl .split.rs.dragging>.gutter::after{background:var(--bright)}
+.sl .split.rs.dragging{user-select:none;cursor:col-resize}
+@media (max-width:1100px){.sl .split{grid-template-columns:1fr !important}.sl .split.rs{gap:12px}.sl .split.rs>.gutter{display:none}.sl .hide-md{display:none}}
 .sl .graphbox{position:relative;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;height:680px}
 .sl .graphbox svg{display:block;width:100%;height:100%;cursor:grab;user-select:none}
 .sl .graphbox svg.drag{cursor:grabbing}

@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 import { job, resetJob, send, setStore, store, useStore } from "../kit";
 import { RBAC } from "../graph";
 import { Bundle, Item, Live, Principal, Row, TreeNode, fromLive, fromModel, fromRole, gap, required, team } from "../bundle";
-import { ErrorBox, Metric, Picker, Skeleton, ago, fmt } from "../ui";
+import { ErrorBox, Metric, Picker, Skeleton, Split, ago, fmt } from "../ui";
 
 type Any = any;
 const KINDS: [string, string][] = [["agent", "Agents"], ["semantic_view", "Semantic views"], ["search_service", "Search services"],
@@ -50,7 +50,7 @@ function AssetsView({ m }: { m: RBAC }) {
   const items = useMemo(() => (lst.result?.assets || []).filter((a: Any) => a.kind === kind)
     .map((a: Any) => ({ label: a.fqn, value: a.fqn, hint: a.owner || "" })), [lst.result, kind]);
   return (
-    <div className="split" style={{ gridTemplateColumns: "360px minmax(0,1fr)" }}>
+    <Split id="assets" init={420}>
       <div className="card">
         <h3>What does this asset need?</h3>
         <div className="tabsm">{KINDS.map(([k, l]) => <button key={k} className={kind === k ? "on" : ""} onClick={() => setKind(k)}>{l}</button>)}</div>
@@ -75,7 +75,7 @@ function AssetsView({ m }: { m: RBAC }) {
       </div>
       <div className="card">{sel ? <Discovered m={m} sel={sel} /> :
         <div className="empty">Pick an agent, semantic view, tool or skill. Role Explorer walks it down to the data, lists every grant it needs, and shows who can use it today.</div>}</div>
-    </div>
+    </Split>
   );
 }
 
@@ -391,7 +391,7 @@ function RequestsView({ m }: { m: RBAC }) {
   const [f, setF] = useState({ bundle_id: "", target_role: "", justification: "" });
   const roles = useMemo(() => m.ids.filter((_, i) => !["db", "app", "sys"].includes(m.kind[i])).sort(), [m]);
   return (
-    <div className="split" style={{ gridTemplateColumns: "340px minmax(0,1fr)" }}>
+    <Split id="assets-req" init={360}>
       <div className="card">
         <h3>Request access</h3>
         <div className="muted" style={{ fontSize: 12.5, marginBottom: 6 }}>Anyone with the requester role can also file this from SQL or Cortex Code:
@@ -425,7 +425,7 @@ function RequestsView({ m }: { m: RBAC }) {
               <button className="btn sm danger" onClick={() => { decide.run({ id: r.id, decision: "reject" }); setTimeout(() => setNonce((n) => n + 1), 1500); }}>Reject</button></div>}</td>
           </tr>)}</tbody></table></div>}
       </div>
-    </div>
+    </Split>
   );
 }
 

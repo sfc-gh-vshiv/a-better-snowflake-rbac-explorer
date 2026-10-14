@@ -6,7 +6,7 @@ import { SVGRenderer } from "echarts/renderers";
 import { setStore, useStore } from "../kit";
 import { RBAC, blastRadius, hygiene } from "../graph";
 import { KIND_META } from "../theme";
-import { Metric, Picker, RoleChip, UserChip, fmt } from "../ui";
+import { Metric, Picker, RoleChip, Split, UserChip, fmt } from "../ui";
 
 echarts.use([BarChart, PieChart, GridComponent, TooltipComponent, SVGRenderer]);
 
@@ -114,7 +114,7 @@ export function WhatIfTab({ m }: { m: RBAC }) {
     : m.grantsByRole[role].slice(0, 300).map((g) => ({ i: g, label: `${m.gPriv(g)} on ${m.objName(m.gObj(g))}` }));
   const field = kind === "edge" ? "edges" : kind === "ugrant" ? "ugrants" : "grants";
   return (
-    <div className="split" style={{ gridTemplateColumns: "380px minmax(0,1fr)" }}>
+    <Split id="insights" init={380}>
       <div className="card">
         <h3>Simulate a revoke</h3>
         <p className="muted" style={{ marginTop: 0 }}>Nothing is changed in Snowflake. Pick grants to remove and see who loses what.</p>
@@ -176,6 +176,6 @@ export function WhatIfTab({ m }: { m: RBAC }) {
           </div>
         )}
       </div>
-    </div>
+    </Split>
   );
 }

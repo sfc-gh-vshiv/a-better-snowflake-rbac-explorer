@@ -3,7 +3,7 @@ import ELK from "elkjs/lib/elk.bundled.js";
 import { setStore, useStore, job, send } from "../kit";
 import { RBAC } from "../graph";
 import { KIND_META } from "../theme";
-import { Legend, RoleChip, fmt } from "../ui";
+import { Legend, RoleChip, Split, fmt } from "../ui";
 import { RolePanel } from "./Role";
 
 type Any = any;
@@ -291,7 +291,7 @@ export function Hierarchy({ m }: { m: RBAC }) {
   };
 
   return (
-    <div className={"split" + (s.panelOpen === false ? " solo" : "")}>
+    <Split id="hierarchy" side="right" init={380} solo={s.panelOpen === false}>
       <div>
         <div className={"graphbox" + (full ? " full" : "")} ref={box}>
           <svg className={dragging ? "drag" : ""}
@@ -423,7 +423,7 @@ export function Hierarchy({ m }: { m: RBAC }) {
       {s.panelOpen !== false && <div className="card panel">
         {sel === null ? <Overview m={m} /> : <RolePanel m={m} r={sel} compact />}
       </div>}
-    </div>
+    </Split>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { job, send, setStore, store, useStore } from "./kit";
 import { RBAC, RawModel } from "./graph";
 import { KIND_META } from "./theme";
@@ -107,6 +107,40 @@ export function Legend() {
   return (
     <div className="legend">
       {Object.entries(KIND_META).map(([k, v]) => <span key={k}><i style={{ background: v.fill, borderColor: v.stroke }} />{v.label}</span>)}
+    </div>
+  );
+}
+
+/** Two-panel layout with a draggable gutter. `side` is the fixed-width panel; its width is remembered per `id`.
+ *  Double-click the gutter to reset. With `solo`, only the first child shows full width. */
+export function Split({ id, init, side = "left", min = 220, max = 900, solo, children }:
+  { id: string; init: number; side?: "left" | "right"; min?: number; max?: number; solo?: boolean; children: React.ReactNode }) {
+  const key = "rx.split." + id;
+  const read = () => { try { const v = Number(localStorage.getItem(key)); return v >= min && v <= max ? v : init; } catch { return init; } };
+  const [w, setW] = useState<number>(read);
+  const cur = useRef(w); cur.current = w;
+  const [drag, setDrag] = useState(false);
+  const kids = React.Children.toArray(children);
+  if (solo) return <div className="split solo">{kids}</div>;
+  const save = (v: number) => { try { localStorage.setItem(key, String(v)); } catch { /* storage may be blocked */ } };
+  const down = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const x0 = e.clientX, w0 = cur.current;
+    const mv = (ev: MouseEvent) => {
+      const dx = ev.clientX - x0;
+      setW(Math.max(min, Math.min(max, side === "left" ? w0 + dx : w0 - dx)));
+    };
+    const up = () => { window.removeEventListener("mousemove", mv); window.removeEventListener("mouseup", up); setDrag(false); save(cur.current); };
+    window.addEventListener("mousemove", mv); window.addEventListener("mouseup", up); setDrag(true);
+  };
+  const reset = () => { setW(init); save(init); };
+  const cols = side === "left" ? `${w}px 14px minmax(0,1fr)` : `minmax(0,1fr) 14px ${w}px`;
+  return (
+    <div className={"split rs" + (drag ? " dragging" : "")} style={{ gridTemplateColumns: cols }}>
+      {kids[0]}
+      <div className="gutter" role="separator" aria-orientation="vertical" title="Drag to resize. Double-click to reset."
+        onMouseDown={down} onDoubleClick={reset} />
+      {kids[1]}
     </div>
   );
 }
