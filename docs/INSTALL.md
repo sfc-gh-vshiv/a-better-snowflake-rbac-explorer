@@ -119,6 +119,28 @@ RX_ARTIFACT_REPOS=snowflake.snowpark.pypi_shared_repository RX_WAREHOUSE=<WAREHO
 
 `RBAC_EXPLORER_PYPI_EAI` is then unused; drop it if you like.
 
+## Step 4: AI asset access
+
+Optional. Adds access bundles, requests and gated apply to the **AI assets** tab ([details](ACCESS.md)).
+
+```bash
+snow sql -c <connection> -f setup/access.sql -D warehouse=<WAREHOUSE> -D requester_role=PUBLIC
+snow sql -c <connection> -f setup/alerts.sql -D warehouse=<WAREHOUSE>   # loads the bundle alert kinds
+```
+
+- `requester_role` can see the bundle catalog and file requests. Use a narrower role than `PUBLIC` if you like.
+- The script grants `CREATE ROLE` on the account to `RBAC_EXPLORER_ROLE`, used only for `AR_*` access roles.
+- Apply stays off until an admin turns it on in **AI assets > Settings**.
+- For each agent or semantic view you want analysed, give the app `DESCRIBE` rights:
+
+  ```sql
+  GRANT MONITOR ON AGENT <db>.<schema>.<agent> TO ROLE RBAC_EXPLORER_ROLE;
+  GRANT REFERENCES ON SEMANTIC VIEW <db>.<schema>.<view> TO ROLE RBAC_EXPLORER_ROLE;
+  ```
+
+To try it on throwaway objects, `setup/demo_access_seed.sql` creates a small agent stack and two users: an
+author who can use it and a teammate who can't (remove with `setup/demo_access_unseed.sql`).
+
 ## Optional: Slack notifications
 
 1. In Slack, create an app with an [incoming webhook](https://api.slack.com/messaging/webhooks) for the channel
@@ -183,6 +205,12 @@ RX_WAREHOUSE=<WAREHOUSE> bash deploy/deploy.sh <connection>
 ```
 
 If `pyproject.toml` changed, add `--rebuild` to the deploy command so the container reinstalls packages.
+
+### Rolling back AI asset access
+
+`setup/uninstall_v2.sql` restores the previous watcher procedure (saved by `setup/access.sql`), drops the
+`ACCESS` schema and the bundle alert rules, and revokes `CREATE ROLE`. It lists `AR_*` roles instead of dropping
+them, because users may depend on them. The rest of the app keeps working.
 
 ## Uninstalling
 

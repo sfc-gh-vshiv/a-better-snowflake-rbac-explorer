@@ -125,6 +125,7 @@ function Discovered({ m, sel }: { m: RBAC; sel: Sel }) {
   if (j.error) return <ErrorBox msg={j.error} />;
   if (!j.result) return <div><div className="row" style={{ marginBottom: 8 }}><b>Walking the asset down to its data</b>
     <span className="muted">{j.elapsed ? j.elapsed + "s" : ""} · DESCRIBE and SHOW GRANTS on each object</span></div><Skeleton h={300} /></div>;
+  (window as Any).__reBundle = j.result;   // context for the Ask panel
   return <BundleView m={m} b={{ ...j.result, id: sel.id || j.result.id }} sel={sel} key={key} />;
 }
 

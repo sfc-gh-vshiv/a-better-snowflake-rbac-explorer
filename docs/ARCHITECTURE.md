@@ -62,9 +62,16 @@ size of the account. Results are cached on the server for 30 minutes and shared 
 - **Least privilege.** The role gets the viewer database roles it needs (`SECURITY_VIEWER`,
   `GOVERNANCE_VIEWER`), `CORTEX_USER`, task privileges and `MANAGE GRANTS`. `MANAGE GRANTS` is required to run
   `SHOW GRANTS OF ROLE` on roles it does not own; it also allows the opt-in auto-revoke.
-- **No changes without consent.** Revoke what-if only generates SQL. The app changes grants in exactly two places:
-  rules you explicitly set to auto-revoke, and the demo scenario's buttons, which only touch the
-  `DEMO_*` objects created by `setup/demo_seed.sql`.
+- **No changes without consent.** Revoke what-if only generates SQL. The app changes grants in exactly three places:
+  rules you explicitly set to auto-revoke, the demo scenario's buttons, which only touch the
+  `DEMO_*` objects created by `setup/demo_seed.sql`, and **Apply** on an AI asset (off by default).
+- **Apply is narrow.** The server regenerates the access-role SQL from the saved bundle and runs it only if it
+  matches the reviewed statements, every statement must match an allowlist (`CREATE ROLE AR_*`,
+  `GRANT SELECT | USAGE | READ ... TO ROLE AR_*`, `GRANT ROLE AR_* TO ROLE <target>`), and system, protected and
+  `AR_*` roles can't be targets. Each run is logged in `ACCESS.APPLY_LOG` and can be reverted. `CREATE ROLE` on the
+  account is granted only by `setup/access.sql`. See [AI asset access](ACCESS.md#the-fix).
+- **Requests can't escalate.** `ACCESS.FILE_REQUEST` (owner's rights) only inserts a pending request for the
+  caller; `ACCESS.BUNDLE_CATALOG` is a secure view of what each asset needs, not who holds it.
 - **Input handling.** Role and user names from the browser are checked against the live list before they are
   used in a `SHOW` command, identifiers are quoted, and values are passed as bind parameters. Alert rule specs
   are validated field by field (`clean_spec` in `modules/watch_kinds.py`).

@@ -16,6 +16,8 @@ a rule for you to review before saving.
 | **Role holders change** | Someone new gets one of the listed roles (for example `ACCOUNTADMIN`), directly or, optionally, through another role. | Roles; include inherited holders; users to ignore. |
 | **Sensitive privilege** | A role is granted one of the listed privileges (for example `MANAGE GRANTS`, `CREATE USER`) on the account or on chosen databases. | Privileges; scope; roles to ignore. |
 | **New user / role** | A user or role is created that matches a filter. | Name pattern (`*` and `?` wildcards); user type; owner roles. |
+| **AI asset drift** | A saved AI asset (agent, semantic view, tool, skill) gains a dependency its access bundle doesn't cover, such as a procedure that now reads a new table. Created from **AI assets**. | The saved bundle. |
+| **Access role broken** | The asset's `AR_*` access role no longer holds a grant from its bundle, for example after an agent is recreated without `COPY GRANTS`. Created from **AI assets**. | The saved bundle. |
 
 When you save a custom alert, the app records what already exists as the rule's **baseline**, so only changes
 after that moment alert. A protected-role rule checks the current state on every run, so an existing violation

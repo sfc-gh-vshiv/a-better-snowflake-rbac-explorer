@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { job, response, send, setStore, store, useStore } from "./kit";
 import { RBAC, hygiene } from "./graph";
+import { Bundle, describeBundle, fromModel, gap } from "./bundle";
 
 type Any = any;
 const W = window as Any;
@@ -62,6 +63,15 @@ export function buildContext(m: RBAC, question: string, history: Turn[]) {
   const page: Any = { tab: s.tab };
   if (s.sel && m.byId.has(s.sel)) page.selected_role = roleFacts(m, m.byId.get(s.sel)!);
   if (s.user) { const u = users.findIndex((x) => x.name === s.user); if (u >= 0) page.selected_user = userFacts(m, u); }
+  if (s.tab === "assets" && (window as Any).__reBundle) {
+    const b = (window as Any).__reBundle as Bundle;
+    page.selected_ai_asset = { summary: describeBundle(b), runs_as: b.needs_default_wh ? "caller's default role and default warehouse" : "caller's role" };
+    const u = s.canUser ? users.findIndex((x) => x.name === s.canUser) : -1;
+    if (u >= 0) {
+      const g = gap(m, b, fromModel(m, u, b.needs_default_wh ? "default" : "all"));
+      page.selected_ai_asset.checked_user = { user: s.canUser, status: g.status, missing: take(g.missing.map((r) => `${r.item.priv} on ${r.item.fqn}: ${r.reason}`), 30) };
+    }
+  }
   if (s.tab === "access" && s.obj !== null && m.raw.objs[s.obj]) {
     const a = m.access(s.obj);
     page.selected_object = {
