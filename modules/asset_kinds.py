@@ -5,7 +5,7 @@ or Cortex Code skill. Discovery walks the stack from the asset down to the data,
 and SHOW commands, and returns a tree. `expand` flattens the tree into bundle items with the database
 and schema USAGE each object implies. Every item also carries its live grantees (SHOW GRANTS ON),
 because ACCOUNT_USAGE.GRANTS_TO_ROLES has no rows for semantic views or agents and lags up to 2h for
-everything else (see docs/V2_FACTS.md).
+everything else (see docs/PLATFORM_FACTS.md).
 
 The app imports this module directly. The watcher procedure imports the same file from
 @RBAC_EXPLORER_DB.ALERTS.CODE, so drift checks discover bundles exactly the way the app does.

@@ -208,7 +208,7 @@ If `pyproject.toml` changed, add `--rebuild` to the deploy command so the contai
 
 ### Rolling back AI asset access
 
-`setup/uninstall_v2.sql` restores the previous watcher procedure (saved by `setup/access.sql`), drops the
+`setup/uninstall_access.sql` restores the previous watcher procedure (saved by `setup/access.sql`), drops the
 `ACCESS` schema and the bundle alert rules, and revokes `CREATE ROLE`. It lists `AR_*` roles instead of dropping
 them, because users may depend on them. The rest of the app keeps working.
 

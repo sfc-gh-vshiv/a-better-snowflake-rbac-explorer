@@ -1,11 +1,11 @@
--- Role Explorer v2 demo: a small agent stack (data -> semantic view -> custom tool -> agent -> skill) and two
+-- Role Explorer AI asset demo: a small agent stack (data -> semantic view -> custom tool -> agent -> skill) and two
 -- people, one who can use it and one who can't. Idempotent. Run as ACCOUNTADMIN.
 --   snow sql -c <connection> -f setup/demo_access_seed.sql -D warehouse=<WAREHOUSE>
 -- Remove with setup/demo_access_unseed.sql. No credentials are created for the demo users.
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE IDENTIFIER('<% warehouse %>');
 
-CREATE DATABASE IF NOT EXISTS DEMO_SALES_DB COMMENT = 'Role Explorer v2 demo data';
+CREATE DATABASE IF NOT EXISTS DEMO_SALES_DB COMMENT = 'Role Explorer AI asset demo data';
 CREATE SCHEMA IF NOT EXISTS DEMO_SALES_DB.CORE;
 
 CREATE TABLE IF NOT EXISTS DEMO_SALES_DB.CORE.CUSTOMERS (CUSTOMER_ID INT, NAME STRING, REGION STRING);
@@ -26,7 +26,7 @@ CREATE OR REPLACE SEMANTIC VIEW DEMO_SALES_DB.CORE.DEMO_SALES_SV
   RELATIONSHIPS (orders (CUSTOMER_ID) REFERENCES customers)
   DIMENSIONS (customers.region AS REGION, customers.name AS NAME, orders.order_date AS ORDER_DATE)
   METRICS (orders.revenue AS SUM(AMOUNT), orders.order_count AS COUNT(ORDER_ID))
-  COMMENT = 'Role Explorer v2 demo semantic view';
+  COMMENT = 'Role Explorer AI asset demo semantic view';
 
 -- Custom tool: caller's rights, so whoever calls it also needs SELECT on ORDERS.
 CREATE OR REPLACE PROCEDURE DEMO_SALES_DB.CORE.DEMO_FORECAST(MONTHS INT)
@@ -41,7 +41,7 @@ END;
 $$;
 
 CREATE OR REPLACE AGENT DEMO_SALES_DB.CORE.DEMO_SALES_AGENT
-  COMMENT = 'Role Explorer v2 demo agent'
+  COMMENT = 'Role Explorer AI asset demo agent'
   FROM SPECIFICATION $$
 models:
   orchestration: auto
@@ -64,7 +64,7 @@ tool_resources:
 $$;
 
 -- The author's role holds everything the agent needs.
-CREATE ROLE IF NOT EXISTS DEMO_SALES_AUTHOR_ROLE COMMENT = 'Role Explorer v2 demo: built the sales agent';
+CREATE ROLE IF NOT EXISTS DEMO_SALES_AUTHOR_ROLE COMMENT = 'Role Explorer AI asset demo: built the sales agent';
 GRANT ROLE DEMO_SALES_AUTHOR_ROLE TO ROLE SYSADMIN;
 GRANT USAGE ON DATABASE DEMO_SALES_DB TO ROLE DEMO_SALES_AUTHOR_ROLE;
 GRANT USAGE ON SCHEMA DEMO_SALES_DB.CORE TO ROLE DEMO_SALES_AUTHOR_ROLE;
@@ -76,7 +76,7 @@ GRANT USAGE ON AGENT DEMO_SALES_DB.CORE.DEMO_SALES_AGENT TO ROLE DEMO_SALES_AUTH
 GRANT USAGE ON WAREHOUSE IDENTIFIER('<% warehouse %>') TO ROLE DEMO_SALES_AUTHOR_ROLE;
 
 -- The teammate's role was given the agent and the semantic view, but not the tables, procedure or warehouse.
-CREATE ROLE IF NOT EXISTS DEMO_SALES_TEAM_ROLE COMMENT = 'Role Explorer v2 demo: sales team, partly set up';
+CREATE ROLE IF NOT EXISTS DEMO_SALES_TEAM_ROLE COMMENT = 'Role Explorer AI asset demo: sales team, partly set up';
 GRANT ROLE DEMO_SALES_TEAM_ROLE TO ROLE SYSADMIN;
 GRANT USAGE ON DATABASE DEMO_SALES_DB TO ROLE DEMO_SALES_TEAM_ROLE;
 GRANT USAGE ON SCHEMA DEMO_SALES_DB.CORE TO ROLE DEMO_SALES_TEAM_ROLE;
@@ -84,9 +84,9 @@ GRANT SELECT ON SEMANTIC VIEW DEMO_SALES_DB.CORE.DEMO_SALES_SV TO ROLE DEMO_SALE
 GRANT USAGE ON AGENT DEMO_SALES_DB.CORE.DEMO_SALES_AGENT TO ROLE DEMO_SALES_TEAM_ROLE;
 
 CREATE USER IF NOT EXISTS DEMO_SALES_AUTHOR TYPE = PERSON DEFAULT_ROLE = DEMO_SALES_AUTHOR_ROLE
-  DEFAULT_WAREHOUSE = '<% warehouse %>' COMMENT = 'Role Explorer v2 demo: agent author (no credentials)';
+  DEFAULT_WAREHOUSE = '<% warehouse %>' COMMENT = 'Role Explorer AI asset demo: agent author (no credentials)';
 CREATE USER IF NOT EXISTS DEMO_SALES_TEAMMATE TYPE = PERSON DEFAULT_ROLE = DEMO_SALES_TEAM_ROLE
-  COMMENT = 'Role Explorer v2 demo: teammate who wants the agent (no credentials)';
+  COMMENT = 'Role Explorer AI asset demo: teammate who wants the agent (no credentials)';
 GRANT ROLE DEMO_SALES_AUTHOR_ROLE TO USER DEMO_SALES_AUTHOR;
 GRANT ROLE DEMO_SALES_TEAM_ROLE TO USER DEMO_SALES_TEAMMATE;
 

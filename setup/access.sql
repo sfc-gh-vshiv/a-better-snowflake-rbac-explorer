@@ -1,7 +1,7 @@
--- Role Explorer v2: access bundles, gated apply, access requests (idempotent). Run after setup.sql and alerts.sql.
+-- Role Explorer AI asset access: access bundles, gated apply, access requests (idempotent). Run after setup.sql and alerts.sql.
 --   snow sql -c <connection> -f setup/access.sql -D warehouse=<WAREHOUSE> -D requester_role=PUBLIC
 -- Then re-run setup/alerts.sql so the watcher picks up the bundle_drift / bundle_broken alert kinds.
--- Roll back with setup/uninstall_v2.sql (v1 keeps working throughout).
+-- Remove with setup/uninstall_access.sql (the rest of the app keeps working).
 USE ROLE ACCOUNTADMIN;
 
 -- Apply creates AR_<asset> access roles. MANAGE GRANTS (already held) covers the GRANT statements.
@@ -9,10 +9,10 @@ GRANT CREATE ROLE ON ACCOUNT TO ROLE RBAC_EXPLORER_ROLE;
 
 USE ROLE RBAC_EXPLORER_ROLE;
 USE WAREHOUSE IDENTIFIER('<% warehouse %>');
-CREATE SCHEMA IF NOT EXISTS RBAC_EXPLORER_DB.ACCESS COMMENT = 'Role Explorer v2: access bundles and requests';
+CREATE SCHEMA IF NOT EXISTS RBAC_EXPLORER_DB.ACCESS COMMENT = 'Role Explorer: AI asset access bundles and requests';
 USE SCHEMA RBAC_EXPLORER_DB.ACCESS;
 
--- Rollback point: the v1 watcher procedure, saved once before alerts.sql replaces it with the v2 version.
+-- Rollback point: the watcher procedure, saved once before alerts.sql adds the bundle alert kinds.
 CREATE TABLE IF NOT EXISTS PROC_BACKUPS (NAME STRING, DDL STRING, SAVED_AT TIMESTAMP_LTZ DEFAULT CURRENT_TIMESTAMP());
 INSERT INTO PROC_BACKUPS (NAME, DDL)
   SELECT 'CHECK_PROTECTED_ROLES', GET_DDL('PROCEDURE', 'RBAC_EXPLORER_DB.ALERTS.CHECK_PROTECTED_ROLES(BOOLEAN)')

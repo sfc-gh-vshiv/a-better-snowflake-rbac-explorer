@@ -1,6 +1,6 @@
-# v2 platform facts (verified before building)
+# Platform facts (verified before building)
 
-Each fact below was checked against the docs or a live account. The v2 features and the blog rely on these and
+Each fact below was checked against the docs or a live account. The AI asset features rely on these and
 nothing else.
 
 ## Cortex Agents
@@ -24,7 +24,7 @@ nothing else.
   - Search: `search_service`
   - Custom tools: `identifier` plus `type` (`procedure` or `function`) and a `name` carrying the signature
   - All tools: `execution_environment.warehouse`, which can be empty
-  - Agents can also reference `skills` (stage paths) and `mcp_servers`. (Verified live in AOA19049.)
+  - Agents can also reference `skills` (stage paths) and `mcp_servers`. (Verified live.)
 
 ## Semantic views
 
@@ -32,7 +32,7 @@ nothing else.
   ([Querying](https://docs.snowflake.com/en/user-guide/views-semantic/querying#privileges-required-to-query-a-semantic-view))
 - Agents generate SQL against the physical tables, so an agent's Analyst tool needs privileges on the base
   tables too. ([Overview](https://docs.snowflake.com/en/user-guide/views-semantic/overview))
-  - **v2 rule:** an SV reached directly needs `SELECT` on the SV only; an SV reached through an agent tool needs
+  - **Rule the app applies:** an SV reached directly needs `SELECT` on the SV only; an SV reached through an agent tool needs
     `SELECT` on the SV and its base tables.
 - `DESCRIBE SEMANTIC VIEW` returns `BASE_TABLE_DATABASE_NAME`, `BASE_TABLE_SCHEMA_NAME` and `BASE_TABLE_NAME`
   rows per logical table. (Verified live.)
@@ -40,7 +40,7 @@ nothing else.
 ## ACCOUNT_USAGE gap for AI objects
 
 - `ACCOUNT_USAGE.GRANTS_TO_ROLES` has no rows for `SEMANTIC_VIEW` or `CORTEX_AGENT` grants, even for objects
-  that are a year old. Procedure and function grants are present. (Verified live in AOA19049 on 2026-10-13.)
+  that are a year old. Procedure and function grants are present. (Verified live.)
   - `SHOW GRANTS ON SEMANTIC VIEW` and `SHOW GRANTS ON AGENT` do return them, with `granted_on` values
     `SEMANTIC_VIEW` and `CORTEX_AGENT`.
   - So asset discovery reads these grants live and merges them into the browser model. Without that, every
@@ -59,13 +59,13 @@ nothing else.
 
 ## Skills
 
-- `SHOW CORTEX EXTENSIONS IN ACCOUNT` returned nothing in AOA19049, so v2 can't rely on a skill catalog.
+- `SHOW CORTEX EXTENSIONS IN ACCOUNT` returned nothing in the test account, so the app can't rely on a skill catalog.
   - Instead, SKILL.md is read from a pasted text, a stage file or the app's Git repository stage.
 - Cortex Code CLI tags its queries with `QUERY_TAG = {"app":"cortex_code_cli",...}`. Desktop and other clients
   don't tag theirs.
   - "Learn from the author" therefore filters `ACCESS_HISTORY` by user and time window, and optionally by that
     tag.
-- `ACCOUNT_USAGE.ACCESS_HISTORY` is populated in AOA19049 (Enterprise). If the view isn't available, the app
+- `ACCOUNT_USAGE.ACCESS_HISTORY` is populated on Enterprise edition. If the view isn't available, the app
   turns the learned mode off.
 
 ## Procedures and functions

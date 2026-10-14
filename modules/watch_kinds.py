@@ -16,7 +16,7 @@ try:  # the watcher procedure imports both files flat from the CODE stage
 except ImportError:
     try:  # the app imports them as a package
         from modules import asset_kinds as ak
-    except ImportError:  # a v1 watcher that only imports watch_kinds.py: bundle kinds are unavailable there
+    except ImportError:  # an older watcher that only imports watch_kinds.py: bundle kinds are unavailable there
         ak = None
 
 KINDS = ("admin_holders", "sensitive_privilege", "new_principal", "bundle_drift", "bundle_broken")

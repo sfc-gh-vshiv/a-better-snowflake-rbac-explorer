@@ -1,6 +1,6 @@
 ---
 name: demo-sales-skill
-description: Answer sales questions with the demo sales agent, and run a quick revenue forecast. Demo skill for Role Explorer v2.
+description: Answer sales questions with the demo sales agent, and run a quick revenue forecast. Demo skill for Role Explorer.
 ---
 
 # Demo sales skill

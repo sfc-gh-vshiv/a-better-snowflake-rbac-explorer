@@ -10,7 +10,7 @@ questions for an admin:
    apply it from the app, with a log and an undo.
 
 Setup: [Installation, step 4](INSTALL.md#step-4-ai-asset-access). Platform behaviour this relies on, with
-sources: [V2_FACTS.md](V2_FACTS.md).
+sources: [PLATFORM_FACTS.md](PLATFORM_FACTS.md).
 
 ## Discovery
 
