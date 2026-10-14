@@ -38,7 +38,7 @@ def _sync_modules() -> None:
 
 
 _sync_modules()
-from modules import alerts, ask, model  # noqa: E402
+from modules import access, alerts, ask, model  # noqa: E402
 from modules.connection import get_session  # noqa: E402
 
 session = get_session()
@@ -195,6 +195,9 @@ if req:
             bridge_respond(req["id"], run_jobs(_token("ask", req["id"]), {"a": (ask.SQL, [ask.MODEL, prompt])}, ask.post))
         elif a.startswith("alert_") or a.startswith("watch_"):
             bridge_respond(req["id"], alerts.handle(session, a, pl, known_roles, known_users, run_jobs,
+                                                    run_py=lambda fn: run_py(_token(a, req["id"]), fn)))
+        elif a.startswith("access_"):
+            bridge_respond(req["id"], access.handle(session, a, pl, known_roles, known_users,
                                                     run_py=lambda fn: run_py(_token(a, req["id"]), fn)))
         elif a == "ack":
             bridge_respond(req["id"], True)

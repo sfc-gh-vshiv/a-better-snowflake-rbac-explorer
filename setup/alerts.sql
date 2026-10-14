@@ -74,13 +74,14 @@ CREATE TABLE IF NOT EXISTS WATCH_RULES (
 -- Shared detection code; deploy/deploy.sh uploads modules/watch_kinds.py here.
 CREATE STAGE IF NOT EXISTS CODE;
 PUT 'file://modules/watch_kinds.py' @CODE AUTO_COMPRESS = FALSE OVERWRITE = TRUE;
+PUT 'file://modules/asset_kinds.py' @CODE AUTO_COMPRESS = FALSE OVERWRITE = TRUE;
 
 CREATE OR REPLACE PROCEDURE CHECK_PROTECTED_ROLES(DRY_RUN BOOLEAN DEFAULT FALSE)
   RETURNS VARIANT
   LANGUAGE PYTHON
   RUNTIME_VERSION = '3.11'
   PACKAGES = ('snowflake-snowpark-python')
-  IMPORTS = ('@RBAC_EXPLORER_DB.ALERTS.CODE/watch_kinds.py')
+  IMPORTS = ('@RBAC_EXPLORER_DB.ALERTS.CODE/watch_kinds.py', '@RBAC_EXPLORER_DB.ALERTS.CODE/asset_kinds.py')
   HANDLER = 'main'
   COMMENT = 'Role Explorer: protected roles + custom alert kinds; notify and optionally revoke'
   EXECUTE AS CALLER
@@ -311,7 +312,9 @@ def send(session, email, slack, subject, title, headline, rows, fix, sev="high")
 
 
 TITLES = {"admin_holders": "New holder of a watched role", "sensitive_privilege": "Sensitive privilege granted",
-          "new_principal": "New user or role matching an alert"}
+          "new_principal": "New user or role matching an alert",
+          "bundle_drift": "An AI asset needs access its bundle doesn't cover",
+          "bundle_broken": "An access role lost a grant its asset needs"}
 
 
 def check_watches(session, dry_run, out):

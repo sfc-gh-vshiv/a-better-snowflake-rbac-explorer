@@ -9,15 +9,17 @@ import { RoleTab } from "./tabs/Role";
 import { AccessTab, UserTab } from "./tabs/User";
 import { HygieneTab, WhatIfTab } from "./tabs/Insights";
 import { AlertsTab, useOpenAlerts } from "./tabs/Alerts";
+import { AssetsTab } from "./tabs/Assets";
 import { ASK_CSS, AskPanel } from "./ask";
 
 type Any = any;
 const W = window as Any;
-export const VERSION = "role-explorer-1.1.0";
+export const VERSION = "role-explorer-2.0.0";
 const ALL_CSS = CSS + ASK_CSS;
 
 const TABS = [
   { id: "graph", label: "Hierarchy" },
+  { id: "assets", label: "AI assets" },
   { id: "role", label: "Role 360" },
   { id: "access", label: "Who can access?" },
   { id: "user", label: "Users" },
@@ -71,6 +73,7 @@ function App(p: Any) {
       {m && (
         <div>
           {s.tab === "graph" && <Hierarchy m={m} />}
+          {s.tab === "assets" && <AssetsTab m={m} />}
           {s.tab === "role" && <RoleTab m={m} />}
           {s.tab === "access" && <AccessTab m={m} />}
           {s.tab === "user" && <UserTab m={m} />}

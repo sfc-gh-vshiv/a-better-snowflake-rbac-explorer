@@ -8,9 +8,20 @@ is an alert, a key that disappears is resolved.
 """
 from __future__ import annotations
 
+import json
 import re
 
-KINDS = ("admin_holders", "sensitive_privilege", "new_principal")
+try:  # the watcher procedure imports both files flat from the CODE stage
+    import asset_kinds as ak
+except ImportError:
+    try:  # the app imports them as a package
+        from modules import asset_kinds as ak
+    except ImportError:  # a v1 watcher that only imports watch_kinds.py: bundle kinds are unavailable there
+        ak = None
+
+KINDS = ("admin_holders", "sensitive_privilege", "new_principal", "bundle_drift", "bundle_broken")
+BUNDLES = "RBAC_EXPLORER_DB.ACCESS.BUNDLES"
+_UUID = re.compile(r"^[0-9a-fA-F-]{36}$")
 PRIVILEGES = (
     "MANAGE GRANTS", "CREATE USER", "CREATE ROLE", "CREATE INTEGRATION", "CREATE DATABASE", "CREATE WAREHOUSE",
     "CREATE SHARE", "CREATE NETWORK POLICY", "CREATE ACCOUNT", "EXECUTE TASK", "EXECUTE MANAGED TASK", "MONITOR USAGE",
@@ -97,6 +108,11 @@ def clean_spec(kind: str, spec: dict, roles: set, users: set) -> dict:
             raise ValueError("user type applies to users only: PERSON, SERVICE or LEGACY_SERVICE")
         owners = _names(spec.get("owner_in"), roles, "owner role")
         return {"object": obj, "name_pattern": pat, "user_type": ut, "owner_in": owners}
+    if kind in ("bundle_drift", "bundle_broken"):
+        bid = str(spec.get("bundle_id") or "")
+        if not _UUID.match(bid):
+            raise ValueError("pick a saved access bundle")
+        return {"bundle_id": bid, "asset": str(spec.get("asset") or "")[:300]}
     raise ValueError(f"unknown alert kind {kind}")
 
 
@@ -109,6 +125,10 @@ def describe(kind: str, spec: dict) -> str:
         where = "the account" if spec["scope"] == "ACCOUNT" else "database " + ", ".join(spec["scope"]["databases"])
         ex = f", except {', '.join(spec['except_roles'])}" if spec.get("except_roles") else ""
         return f"A role is granted {', '.join(spec['privileges'])} on {where}{ex}"
+    if kind == "bundle_drift":
+        return f"{spec.get('asset') or 'An asset'} gains a dependency that its access bundle doesn't cover"
+    if kind == "bundle_broken":
+        return f"A grant in the access role for {spec.get('asset') or 'an asset'} goes missing"
     bits = [f"A new {spec['object'].lower()} is created"]
     if spec.get("name_pattern"):
         bits.append(f"named like {spec['name_pattern']}")
@@ -179,11 +199,56 @@ def _new_state(session, spec) -> dict:
     return items
 
 
+def _bundle(session, bid: str) -> dict:
+    rows = session.sql(f"SELECT KIND, FQN, SOURCE, ITEMS, AR_ROLE FROM {BUNDLES} WHERE ID = ?", params=[bid]).collect()
+    if not rows:
+        raise ValueError("the access bundle was deleted")
+    r = rows[0].as_dict()
+    load = lambda v: json.loads(v) if isinstance(v, str) else (v or {})  # noqa: E731
+    return {"kind": r["KIND"], "fqn": r["FQN"], "source": load(r["SOURCE"]), "items": load(r["ITEMS"]) or [],
+            "ar": r["AR_ROLE"]}
+
+
+def _drift_state(session, spec) -> dict:
+    """Dependencies the asset has right now. Baseline = the saved bundle, so a new key is a new dependency."""
+    b = _bundle(session, spec["bundle_id"])
+    src = b["source"]
+    tree = ak.discover(session, b["kind"], b["fqn"], src.get("text") or "")
+    return {i["key"]: {"asset": b["fqn"], "otype": i["otype"], "fqn": i["fqn"], "priv": i["priv"], "via": i["via"],
+                       "ar": b["ar"] or ak.ar_name(b["kind"], b["fqn"]), "sig": i.get("sig")}
+            for i in ak.expand(tree) if not i.get("suggested")}
+
+
+def _broken_state(session, spec) -> dict:
+    """Grants the bundle's access role should hold but doesn't. Empty until the role exists."""
+    b = _bundle(session, spec["bundle_id"])
+    ar = b["ar"]
+    if not ar:
+        return {}
+    try:
+        have = {(g["privilege"], ak.norm(str(g["name"]))) for g in _show(session, f"SHOW GRANTS TO ROLE {_q(ar)}")}
+    except Exception:
+        return {}  # role not created yet, or dropped (a dropped role shows up as every grant missing below)
+    out = {}
+    for i in b["items"]:
+        if i["otype"] == "DATABASE ROLE" or i.get("on") is False or (i.get("suggested") and not i.get("on")):
+            continue
+        if (i["priv"], i["fqn"]) not in have:
+            out[i["key"]] = {"asset": b["fqn"], "otype": i["otype"], "fqn": i["fqn"], "priv": i["priv"], "ar": ar,
+                             "sig": i.get("sig")}
+    return out
+
+
 def state(session, kind: str, spec: dict) -> dict:
-    return {"admin_holders": _admin_state, "sensitive_privilege": _priv_state, "new_principal": _new_state}[kind](session, spec)
+    return {"admin_holders": _admin_state, "sensitive_privilege": _priv_state, "new_principal": _new_state,
+            "bundle_drift": _drift_state, "bundle_broken": _broken_state}[kind](session, spec)
 
 
 def reason(kind: str, spec: dict, v: dict) -> str:
+    if kind == "bundle_drift":
+        return f"{v['asset']} now needs {v['priv']} on {v['otype'].lower()} {v['fqn']} (via {v['via']}); users of {v['ar']} will lose part of it"
+    if kind == "bundle_broken":
+        return f"{v['ar']} no longer holds {v['priv']} on {v['otype'].lower()} {v['fqn']}, so {v['asset']} is partly broken for its users"
     if kind == "admin_holders":
         return f"can now use {v['role']} ({v['path']})"
     if kind == "sensitive_privilege":
@@ -192,6 +257,8 @@ def reason(kind: str, spec: dict, v: dict) -> str:
 
 
 def fix_sql(kind: str, v: dict) -> str | None:
+    if kind in ("bundle_drift", "bundle_broken") and v.get("otype") in ak.KW:
+        return f"GRANT {v['priv']} ON {ak.KW[v['otype']]} {ak.from_norm(v['fqn'])}{v.get('sig') or ''} TO ROLE {_q(v['ar'])};"
     if kind == "admin_holders":
         return f"REVOKE ROLE {_q(v['direct_role'])} FROM USER {_q(v['grantee'])};"
     if kind == "sensitive_privilege":

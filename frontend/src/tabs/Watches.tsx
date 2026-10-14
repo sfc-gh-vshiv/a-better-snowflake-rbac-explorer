@@ -9,6 +9,7 @@ type Any = any;
 export const KIND_LABEL: Record<string, string> = {
   protected_role: "Protected role", admin_holders: "Role holders change",
   sensitive_privilege: "Sensitive privilege", new_principal: "New user / role",
+  bundle_drift: "AI asset drift", bundle_broken: "Access role broken",
 };
 const PRIVS = ["MANAGE GRANTS", "CREATE USER", "CREATE ROLE", "CREATE INTEGRATION", "CREATE DATABASE", "CREATE WAREHOUSE", "CREATE SHARE",
   "CREATE NETWORK POLICY", "CREATE ACCOUNT", "EXECUTE TASK", "EXECUTE MANAGED TASK", "MONITOR USAGE", "MONITOR EXECUTION", "IMPORT SHARE",

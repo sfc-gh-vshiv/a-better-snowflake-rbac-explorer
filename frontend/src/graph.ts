@@ -12,7 +12,7 @@ export type RawModel = {
   grants: number[];                                                          // flat [role, obj, priv, grant_option] * n
 };
 export type User = {
-  name: string; type: string | null; disabled: boolean; default_role: string | null; secondary: string | null;
+  name: string; type: string | null; disabled: boolean; default_role: string | null; default_warehouse?: string | null; secondary: string | null;
   last_login: string | null; created: string | null; email: string | null; comment: string | null; owner: string | null;
   has_password: boolean; has_rsa: boolean; has_mfa: boolean; has_pat: boolean; locked: boolean;
 };

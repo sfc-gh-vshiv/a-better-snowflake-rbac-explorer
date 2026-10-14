@@ -23,7 +23,7 @@ if [ -n "$REPOS" ]; then PKGS="ARTIFACT_REPOSITORIES = ($REPOS)"; else PKGS="EXT
 STAGE=@RBAC_EXPLORER_DB.APP.ROLE_EXPLORER_STAGE/${APP##*.}
 DIR="$(cd "$(dirname "$0")/.." && pwd)"
 FILES=(streamlit_app.py react_bridge.py pyproject.toml modules/__init__.py modules/connection.py
-       modules/model.py modules/alerts.py modules/ask.py modules/watch_kinds.py
+       modules/model.py modules/alerts.py modules/ask.py modules/watch_kinds.py modules/asset_kinds.py modules/access.py
        ui/sl_ui.js .streamlit/config.toml)
 sql() { snow sql -c "$CONN" -q "USE ROLE RBAC_EXPLORER_ROLE; $1" "${@:2}"; }
 
@@ -43,6 +43,7 @@ sql "ALTER STREAMLIT $APP ADD LIVE VERSION FROM LAST;" >/dev/null 2>&1 || true
 sql "ALTER STREAMLIT $APP SET $PKGS;" >/dev/null
 # The watcher procedure imports the same detection code the app uses for previews.
 snow stage copy modules/watch_kinds.py @RBAC_EXPLORER_DB.ALERTS.CODE --overwrite -c "$CONN" >/dev/null
+snow stage copy modules/asset_kinds.py @RBAC_EXPLORER_DB.ALERTS.CODE --overwrite -c "$CONN" >/dev/null
 
 LIVE="snow://streamlit/$APP/versions/live"
 for f in "${FILES[@]}"; do

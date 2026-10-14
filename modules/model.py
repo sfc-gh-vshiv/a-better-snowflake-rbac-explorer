@@ -105,6 +105,7 @@ def build_model(frames: dict, roles: list[dict], users: list[dict], account: str
             "name": u["name"], "type": (u.get("type") or "").upper() or None,
             "disabled": str(u.get("disabled")).lower() == "true",
             "default_role": u.get("default_role") or None,
+            "default_warehouse": u.get("default_warehouse") or None,
             "secondary": u.get("default_secondary_roles") or None,
             "last_login": _iso(u.get("last_success_login")),
             "created": _iso(u.get("created_on")), "email": u.get("email") or None,
