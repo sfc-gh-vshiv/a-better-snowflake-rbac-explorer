@@ -365,7 +365,7 @@ export function Hierarchy({ m }: { m: RBAC }) {
                       onMouseEnter={() => setHover(r)} onMouseLeave={() => setHover(null)}
                       onClick={(e) => { e.stopPropagation(); if (!drag.current?.moved) pick(r); }}
                       onDoubleClick={(e) => { e.stopPropagation(); setStore({ sel: m.ids[r], focus: true }); }}>
-                      <title>{`${m.ids[r]}\n${k.label} role · ${nu} direct users · ${ng} privileges${m.raw.nodes[r][3] ? "\n" + m.raw.nodes[r][3] : ""}`}</title>
+                      <title>{`${m.ids[r]}\n${k.label} role · ${nu} direct users · ${ng} direct privileges (open the role for inherited)${m.raw.nodes[r][3] ? "\n" + m.raw.nodes[r][3] : ""}`}</title>
                       {isSel && <rect x={-4} y={-4} width={n.w + 8} height={n.h + 8} rx={12} style={{ fill: "none", stroke: "#29B5E8", strokeWidth: 3, opacity: 0.55 }} />}
                       <rect width={n.w} height={n.h} rx={9} style={{ fill: k.fill, stroke: isProt ? "#dc2626" : k.stroke, strokeWidth: isSel ? 2.4 : 1.4 }} />
                       <text x={PAD} y={19} style={{ fontSize: 12.5, fontWeight: 700, fill: k.ink }}>

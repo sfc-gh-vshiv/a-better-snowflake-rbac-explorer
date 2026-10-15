@@ -44,7 +44,9 @@ from modules.connection import get_session  # noqa: E402
 session = get_session()
 
 st.html("<style>[data-testid=stMainBlockContainer]{padding-top:3.4rem;max-width:100%}"
-        "header[data-testid=stHeader]{background:transparent}</style>")
+        "header[data-testid=stHeader]{background:transparent}"
+        # every bridge poll is a rerun; don't fade the UI each time Streamlit marks it stale
+        "[data-stale=true],.stale-element{opacity:1!important;transition:none!important}</style>")
 
 
 # ------------------------------------------------------------------ async jobs

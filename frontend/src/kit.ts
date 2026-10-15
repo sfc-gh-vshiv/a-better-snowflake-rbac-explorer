@@ -40,8 +40,9 @@ export function notify() { subs.forEach((f) => f()); }
 // large payloads instead of re-shipping them on every rerun.
 type Req = { id: string; action: string; payload: Any };
 type Qt = { inflight: (Req & { t: number; tries: number }) | null; queue: Req[]; polls: Record<string, boolean>;
-  last: Record<string, Any>; ack: string[]; timer?: number };
+  last: Record<string, Any>; ack: string[]; timer?: number; backoff?: Record<string, number> };
 const Q: Qt = W.__reQ || (W.__reQ = { inflight: null, queue: [], polls: {}, last: {}, ack: [] });
+Q.backoff = Q.backoff || {};
 const RETRY_MS = 6000, MAX_TRIES = 5;
 
 export function send(action: string, payload: Any = {}): string {
@@ -93,7 +94,8 @@ export function response(id: string | undefined): Any { return id ? Q.last[id] :
 
 // ------------------------------------------------------------ jobs
 export type Job<T = Any> = { loading: boolean; result: T | null; error: string | null; elapsed?: number };
-/** Start once per key; poll pending results. Call only in the component that shows it. */
+/** Start once per key; poll pending results. Call only in the component that shows it.
+ *  Each poll is a Streamlit rerun, so the interval backs off (1.5s, 2.5s, ... up to 5s) to keep long jobs quiet. */
 export function job<T = Any>(key: string, start: () => string, poll = 1500): Job<T> {
   const map = store.jobs;
   if (!map[key]) map[key] = start();
@@ -104,7 +106,9 @@ export function job<T = Any>(key: string, start: () => string, poll = 1500): Job
   if (r.result && r.result.pending) {
     if (!Q.polls[id]) {
       Q.polls[id] = true;
-      setTimeout(() => { if (map[key] === id) { map[key] = send("poll", { token: r.result.token }); notify(); } }, poll);
+      const n = (Q.backoff![key] = (Q.backoff![key] || 0) + 1);
+      setTimeout(() => { if (map[key] === id) { map[key] = send("poll", { token: r.result.token }); notify(); } },
+        Math.min(5000, poll + 1000 * (n - 1)));
     }
     return { loading: true, result: null, error: null, elapsed: r.result.elapsed };
   }

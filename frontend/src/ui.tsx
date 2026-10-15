@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { job, send, setStore, store, useStore } from "./kit";
 import { RBAC, RawModel } from "./graph";
 import { KIND_META } from "./theme";
@@ -54,12 +54,27 @@ export function Metric({ l, v, s, color }: { l: string; v: React.ReactNode; s?: 
 export function Skeleton({ h = 18, w = "100%" }: { h?: number; w?: number | string }) {
   return <div className="skel" style={{ height: h, width: w }} />;
 }
+/** First-load screen: a spinner and a timer that ticks locally, so it stays steady between server polls. */
 export function Loading({ elapsed, label = "Reading roles and grants from ACCOUNT_USAGE" }: { elapsed?: number; label?: string }) {
+  const [, tick] = useState(0);
+  useEffect(() => { const t = W.setInterval(() => tick((n) => n + 1), 1000); return () => { W.clearInterval(t); delete W.__reLoadT0; }; }, []);
+  if (!W.__reLoadT0) W.__reLoadT0 = Date.now() - (elapsed || 0) * 1000;
+  if (elapsed && Date.now() - W.__reLoadT0 < elapsed * 1000) W.__reLoadT0 = Date.now() - elapsed * 1000;
+  const secs = Math.round((Date.now() - W.__reLoadT0) / 1000);
   return (
-    <div className="card" style={{ padding: 22 }}>
-      <div className="row" style={{ marginBottom: 12 }}><b>{label}</b><span className="muted">{elapsed ? `${elapsed}s` : ""} · usually under a minute</span></div>
-      <div className="grid g4" style={{ marginBottom: 12 }}>{[0, 1, 2, 3].map((i) => <Skeleton key={i} h={70} />)}</div>
-      <Skeleton h={420} />
+    <div className="card loadcard">
+      <div className="spin" aria-hidden />
+      <b>{label}</b>
+      <span className="muted">{secs > 0 ? `${secs}s · ` : ""}usually under a minute</span>
+    </div>
+  );
+}
+/** A titled block with a divider above it, so filters, charts and tables read as separate parts. */
+export function Section({ title, right, children, first = false }: { title: React.ReactNode; right?: React.ReactNode; children: React.ReactNode; first?: boolean }) {
+  return (
+    <div className={"sec" + (first ? " first" : "")}>
+      <div className="sec-h"><span>{title}</span>{right}</div>
+      {children}
     </div>
   );
 }

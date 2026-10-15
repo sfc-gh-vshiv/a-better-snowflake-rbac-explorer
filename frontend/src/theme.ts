@@ -116,6 +116,16 @@ export const CSS = `
 .sl pre.ddl{background:#0f172a;color:#e0f2fe;border-radius:10px;padding:10px 12px;font-size:12px;overflow:auto;margin:6px 0 0;white-space:pre-wrap}
 .sl .bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden}
 .sl .bar>i{display:block;height:100%;background:var(--bright)}
+.sl .bar.split2{display:flex}
+.sl .bar.split2>i.inh{background:rgba(41,181,232,.35)}
+.sl .swatch{display:inline-block;width:10px;height:10px;border-radius:3px;margin:0 4px 0 10px;vertical-align:-1px}
+.sl .sec{border-top:1px solid var(--border);margin-top:14px;padding-top:12px}
+.sl .sec.first{border-top:0;margin-top:0;padding-top:0}
+.sl .sec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim)}
+.sl .sec-h .tabsm{margin:0;text-transform:none;letter-spacing:0;font-weight:400}
+.sl .loadcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:320px;text-align:center}
+.sl .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--surface2);border-top-color:var(--bright);animation:slspin .9s linear infinite;margin-bottom:6px}
+@keyframes slspin{to{transform:rotate(360deg)}}
 .sl .toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text);background:#fff;border:1px solid var(--border2);border-radius:8px;padding:4px 9px;cursor:pointer;user-select:none}
 .sl .toggle input{margin:0}
 .sl .kbd{border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:0 5px;font-size:11px;color:var(--dim);background:#fff}

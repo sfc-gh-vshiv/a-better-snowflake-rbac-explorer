@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { setStore, useStore } from "../kit";
 import { RBAC, rankOf } from "../graph";
-import { Metric, Path, Picker, RoleChip, Split, ago, fmt } from "../ui";
+import { Metric, Path, Picker, RoleChip, Section, Split, ago, fmt } from "../ui";
 
 export function UserTab({ m }: { m: RBAC }) {
   const s = useStore();
@@ -128,16 +128,18 @@ function AccessPanel({ m, o }: { m: RBAC; o: number }) {
   return (
     <div>
       <div className="row" style={{ marginBottom: 6 }}><span className="pill plain">{type.toLowerCase()}</span><b className="mono" style={{ fontSize: 14 }}>{name}</b></div>
+      <Section title="Summary">
       <div className="grid g4" style={{ marginBottom: 10 }}>
         <Metric l="Users" v={users.size} />
-        <Metric l="Roles" v={roles.size} s={`${holders.length} hold a grant directly`} />
+        <Metric l="Roles" v={roles.size} s={`${holders.length} direct · ${roles.size - holders.length} inherited`} />
         <Metric l="Grants on it" v={m.grantsByObj[o].length} />
       </div>
-      <div className="callout" style={{ marginBottom: 10 }}>
+      <div className="callout">
         Based on privileges granted on this object. ACCOUNTADMIN and roles with MANAGE GRANTS can always grant themselves access, and future grants aren't shown.
         {containers.length > 0 && " A role also needs USAGE on the database and schema, so roles without it are marked."}
       </div>
-      <h3>Users</h3>
+      </Section>
+      <Section title={`Users (${userRows.length})`}>
       {!userRows.length && <div className="empty">No user can reach this object.</div>}
       {userRows.map(([u, v]) => {
         const p = m.userPath(u, v.via);
@@ -149,7 +151,8 @@ function AccessPanel({ m, o }: { m: RBAC; o: number }) {
           </div>
         );
       })}
-      <h3 style={{ marginTop: 14 }}>Roles</h3>
+      </Section>
+      <Section title={`Roles (${roleRows.length})`}>
       <div className="scroll"><table className="t"><thead><tr><th>Role</th><th>Privileges</th><th>Through</th><th className="hide-sm">Users</th></tr></thead><tbody>
         {roleRows.map(([r, v]) => (
           <tr key={r}>
@@ -160,6 +163,7 @@ function AccessPanel({ m, o }: { m: RBAC; o: number }) {
           </tr>
         ))}
       </tbody></table></div>
+      </Section>
     </div>
   );
 }

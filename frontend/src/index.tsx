@@ -14,7 +14,7 @@ import { ASK_CSS, AskPanel } from "./ask";
 
 type Any = any;
 const W = window as Any;
-export const VERSION = "role-explorer-2.0.0";
+export const VERSION = "role-explorer-2.0.1";
 const ALL_CSS = CSS + ASK_CSS;
 
 const TABS = [
