@@ -8,7 +8,7 @@ It runs entirely inside your Snowflake account. It reads RBAC metadata (roles, u
 table data. It changes grants only when you turn that on: auto-revoke for an alert rule, or **Apply** for an
 AI asset's access role (off by default, logged, reversible).
 
-![Role Explorer: the Hierarchy tab with the Ask assistant answering a revoke question](docs/img/role_explorer.png)
+[![Watch the 45-second RBAC Explorer trailer](docs/img/trailer_poster.png)](docs/img/rbac_explorer_trailer.mp4)
 
 | Tab | What it answers |
 |---|---|
