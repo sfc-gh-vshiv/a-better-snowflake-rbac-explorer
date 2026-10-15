@@ -19,12 +19,12 @@ const ALL_CSS = CSS + ASK_CSS;
 
 const TABS = [
   { id: "graph", label: "Hierarchy" },
-  { id: "assets", label: "AI assets" },
   { id: "role", label: "Role 360" },
   { id: "access", label: "Who can access?" },
   { id: "user", label: "Users" },
   { id: "hygiene", label: "Hygiene" },
   { id: "whatif", label: "Revoke what-if" },
+  { id: "assets", label: "AI assets" },
   { id: "alerts", label: "Alerts" },
 ];
 

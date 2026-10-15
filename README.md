@@ -13,12 +13,12 @@ AI asset's access role (off by default, logged, reversible).
 | Tab | What it answers |
 |---|---|
 | **Hierarchy** | The role graph laid out top-down. Hover to trace ancestors and descendants, click to inspect, double-click to focus N hops, search with `/`. Busy parents fold their leaf roles into "+N roles" bundles; unconnected roles are listed as pills below the graph. Optional user and database-role layers. |
-| **AI assets** | Pick an agent, semantic view, custom tool or skill: every grant it needs (walked down to the data), who can use it the way it actually runs (default role, PAT role restriction), and the least-privilege fix as SQL. Access requests, an apply log with undo, and drift alerts. See [AI asset access](docs/ACCESS.md). |
 | **Role 360** | Who holds a role (and through which chain), what it inherits, every effective privilege (direct vs inherited), paths to the top, copy-ready SQL, and a live check against `SHOW GRANTS OF ROLE`. |
 | **Who can access?** | Pick any object: every role and user that can reach it, the privilege, and the chain. Flags roles missing `USAGE` on the parent database or schema. |
 | **Users** | Everything a user can use and touch, sign-in methods, idle or disabled status, secondary roles. |
 | **Hygiene** | ACCOUNTADMIN holders, roles that inherit ACCOUNTADMIN, grants to PUBLIC, roles not rolled up to SYSADMIN, empty or unreachable roles, deep chains, idle users holding roles, people in service-style roles, password users without MFA, ownership concentration. |
 | **Revoke what-if** | Stage revokes (role to role, role to user, privilege) and see exactly which users lose which privileges, before you run the generated `REVOKE` statements. Nothing is changed in Snowflake. |
+| **AI assets** | Pick an agent, semantic view, custom tool or skill: every grant it needs (walked down to the data), who can use it the way it actually runs (default role, PAT role restriction), and the least-privilege fix as SQL. Access requests, an apply log with undo, and drift alerts. See [AI asset access](docs/ACCESS.md). |
 | **Alerts** | Protected-role rules and custom alerts, the watcher's status, the alert log, and a one-click demo violation. |
 
 An **Ask** assistant (bottom-right button) answers plain-English questions such as *"Who can use
